@@ -1,0 +1,2138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semester 4 — Marks Dashboard</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@400;500;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #07080f;
+            --s1: #0e0f1a;
+            --s2: #141526;
+            --s3: #1c1d30;
+            --border: #1e2035;
+            --border2: #272843;
+            --text: #f0f0ff;
+            --muted: #5a5b80;
+            --dim: #2a2b45;
+            --c0: #7c6fff;
+            --c1: #ff5fa0;
+            --c2: #00e5a0;
+            --c3: #ffb830;
+            --c4: #38beff;
+            --c5: #d45cff;
+            --c6: #ff8c42;
+            --c7: #4ade80;
+            --green: #00e5a0;
+            --red: #ff5f5f;
+            --yellow: #ffb830;
+            --r: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Cabinet Grotesk', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(rgba(124, 111, 255, .03) 1px, transparent 1px), linear-gradient(90deg, rgba(124, 111, 255, .03) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(90px);
+        }
+
+        .orb1 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(124, 111, 255, .1), transparent 70%);
+            top: -120px;
+            left: -80px;
+        }
+
+        .orb2 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255, 95, 160, .07), transparent 70%);
+            bottom: -80px;
+            right: -60px;
+        }
+
+        /* ── TOPBAR ── */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            background: rgba(7, 8, 15, .88);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border2);
+            padding: 0 28px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Clash Display', sans-serif;
+            font-size: .95rem;
+            font-weight: 600;
+        }
+
+        .brand-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--c0);
+            box-shadow: 0 0 8px var(--c0);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .4
+            }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 2px;
+        }
+
+        .tab {
+            background: none;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-family: 'Cabinet Grotesk', sans-serif;
+            font-size: .8rem;
+            font-weight: 700;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .tab:hover {
+            color: var(--text);
+            background: var(--s2);
+        }
+
+        .tab.active {
+            color: var(--text);
+            background: var(--s3);
+            box-shadow: inset 0 0 0 1px var(--border2);
+        }
+
+        .nav-cgpa {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .75rem;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .cgpa-badge {
+            font-weight: 600;
+            color: var(--green);
+            background: rgba(0, 229, 160, .1);
+            border: 1px solid rgba(0, 229, 160, .2);
+            padding: 3px 9px;
+            border-radius: 6px;
+        }
+
+        /* ── PAGES ── */
+        .page {
+            display: none;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn .3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .wrap {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 26px 22px 80px;
+        }
+
+        /* ── HERO BAR ── */
+        .hero-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 11px;
+            margin-bottom: 26px;
+        }
+
+        @media(max-width:680px) {
+            .hero-bar {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .hs {
+            background: var(--s1);
+            border: 1px solid var(--border2);
+            border-radius: 15px;
+            padding: 16px 18px;
+            position: relative;
+            overflow: hidden;
+            animation: fadeUp .5s ease both;
+        }
+
+        .hs::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .hs:nth-child(1)::after {
+            background: linear-gradient(90deg, var(--c0), var(--c5));
+        }
+
+        .hs:nth-child(2)::after {
+            background: linear-gradient(90deg, var(--c2), var(--c4));
+        }
+
+        .hs:nth-child(3)::after {
+            background: linear-gradient(90deg, var(--c3), var(--c6));
+        }
+
+        .hs:nth-child(4)::after {
+            background: linear-gradient(90deg, var(--c1), var(--c3));
+        }
+
+        .hs-lbl {
+            font-size: .6rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 5px;
+        }
+
+        .hs-val {
+            font-size: 1.7rem;
+            font-weight: 900;
+            line-height: 1;
+            font-family: 'Clash Display', sans-serif;
+        }
+
+        .hs-sub {
+            font-size: .68rem;
+            color: var(--muted);
+            margin-top: 3px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* ── SEC LABEL ── */
+        .sec-lbl {
+            font-size: .62rem;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sec-lbl::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ── SUBJECT CARDS GRID ── */
+        .subj-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 13px;
+        }
+
+        @media(max-width:860px) {
+            .subj-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(max-width:520px) {
+            .subj-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sc {
+            background: var(--s1);
+            border: 1px solid var(--border2);
+            border-radius: 18px;
+            overflow: hidden;
+            transition: transform .2s, box-shadow .2s;
+            animation: fadeUp .5s ease both;
+            cursor: pointer;
+        }
+
+        .sc:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .5);
+        }
+
+        .sc-top {
+            padding: 18px 18px 14px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sc-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sc-ico {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .sc-key {
+            font-family: 'Clash Display', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .sc-full {
+            font-size: .65rem;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .sc-right {
+            text-align: right;
+        }
+
+        .sc-pct {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.45rem;
+            font-weight: 600;
+            line-height: 1;
+        }
+
+        .sc-body {
+            padding: 12px 18px 14px;
+        }
+
+        .comp-mini {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .cm-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .cm-tag {
+            font-size: .56rem;
+            font-weight: 700;
+            letter-spacing: .8px;
+            text-transform: uppercase;
+            min-width: 36px;
+            color: var(--muted);
+        }
+
+        .cm-bar {
+            flex: 1;
+            height: 4px;
+            background: var(--s3);
+            border-radius: 100px;
+            overflow: hidden;
+        }
+
+        .cm-fill {
+            height: 100%;
+            border-radius: 100px;
+            transition: width 1.2s cubic-bezier(.17, .67, .35, 1);
+        }
+
+        .cm-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .62rem;
+            color: var(--muted);
+            min-width: 32px;
+            text-align: right;
+        }
+
+        .sc-footer {
+            padding: 9px 18px 12px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sc-chips {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .sc-chip {
+            font-size: .55rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 5px;
+            background: var(--s3);
+            border: 1px solid var(--border2);
+            color: var(--muted);
+        }
+
+        .det-btn {
+            background: none;
+            border: 1px solid var(--border2);
+            border-radius: 7px;
+            padding: 3px 9px;
+            font-family: 'Cabinet Grotesk', sans-serif;
+            font-size: .65rem;
+            font-weight: 700;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .det-btn:hover {
+            border-color: var(--c0);
+            color: var(--c0);
+        }
+
+        /* grade pills */
+        .gp {
+            display: inline-block;
+            padding: 2px 9px;
+            border-radius: 100px;
+            font-size: .65rem;
+            font-weight: 800;
+            letter-spacing: .5px;
+        }
+
+        .gO {
+            background: rgba(124, 111, 255, .18);
+            color: #a78bfa;
+            border: 1px solid rgba(124, 111, 255, .3);
+        }
+
+        .gAp {
+            background: rgba(0, 229, 160, .15);
+            color: #00e5a0;
+            border: 1px solid rgba(0, 229, 160, .25);
+        }
+
+        .gA {
+            background: rgba(56, 190, 255, .15);
+            color: #38beff;
+            border: 1px solid rgba(56, 190, 255, .25);
+        }
+
+        .gBp {
+            background: rgba(255, 184, 48, .15);
+            color: #ffb830;
+            border: 1px solid rgba(255, 184, 48, .25);
+        }
+
+        .gB {
+            background: rgba(255, 95, 160, .15);
+            color: #ff5fa0;
+            border: 1px solid rgba(255, 95, 160, .25);
+        }
+
+        .gC {
+            background: rgba(148, 163, 184, .1);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, .2);
+        }
+
+        .gF {
+            background: rgba(255, 95, 95, .15);
+            color: #ff5f5f;
+            border: 1px solid rgba(255, 95, 95, .25);
+        }
+
+        /* ── OVERALL ── */
+        .perf-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        @media(max-width:640px) {
+            .perf-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--s1);
+            border: 1px solid var(--border2);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: .62rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+
+        .pb-row {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin-bottom: 10px;
+        }
+
+        .pb-lbl {
+            font-size: .75rem;
+            font-weight: 700;
+            min-width: 52px;
+        }
+
+        .pb-track {
+            flex: 1;
+            height: 8px;
+            background: var(--s3);
+            border-radius: 100px;
+            overflow: hidden;
+        }
+
+        .pb-fill {
+            height: 100%;
+            border-radius: 100px;
+            transition: width 1.3s cubic-bezier(.17, .67, .35, 1);
+        }
+
+        .pb-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .68rem;
+            color: var(--muted);
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .sum-tbl {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 4px;
+        }
+
+        .sum-tbl th {
+            font-size: .6rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 5px 9px;
+            text-align: left;
+        }
+
+        .sum-tbl td {
+            padding: 9px 9px;
+            font-size: .8rem;
+        }
+
+        .tr-body td {
+            background: var(--s2);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tr-body td:first-child {
+            border-left: 1px solid var(--border);
+            border-radius: 9px 0 0 9px;
+        }
+
+        .tr-body td:last-child {
+            border-right: 1px solid var(--border);
+            border-radius: 0 9px 9px 0;
+        }
+
+        .tr-total td {
+            background: linear-gradient(90deg, rgba(124, 111, 255, .08), rgba(255, 95, 160, .05));
+            border-top: 1.5px solid rgba(124, 111, 255, .25);
+            border-bottom: 1.5px solid rgba(124, 111, 255, .25);
+            font-weight: 800;
+        }
+
+        .tr-total td:first-child {
+            border-left: 1.5px solid rgba(124, 111, 255, .25);
+            border-radius: 9px 0 0 9px;
+        }
+
+        .tr-total td:last-child {
+            border-right: 1.5px solid rgba(124, 111, 255, .25);
+            border-radius: 0 9px 9px 0;
+        }
+
+        /* ── CGPA ── */
+        .cgpa-wrap {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        @media(max-width:740px) {
+            .cgpa-wrap {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .ring-card {
+            background: var(--s1);
+            border: 1px solid var(--border2);
+            border-radius: 18px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .ring-outer {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 18px;
+        }
+
+        .ring-outer svg {
+            transform: rotate(-90deg);
+        }
+
+        .ring-center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ring-num {
+            font-family: 'Clash Display', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .ring-lbl {
+            font-size: .58rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .ctrl-card {
+            background: var(--s1);
+            border: 1px solid var(--border2);
+            border-radius: 18px;
+            padding: 22px;
+            margin-bottom: 14px;
+        }
+
+        .ctrl-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        @media(max-width:420px) {
+            .ctrl-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .ctrl-grp {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .ctrl-lbl {
+            font-size: .6rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .ctrl-inp {
+            background: var(--s2);
+            border: 1.5px solid var(--border2);
+            border-radius: 9px;
+            padding: 8px 11px;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .85rem;
+            width: 100%;
+            outline: none;
+            transition: border-color .18s;
+        }
+
+        .ctrl-inp:focus {
+            border-color: var(--c0);
+        }
+
+        .cg-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 9px;
+        }
+
+        .cg-stat {
+            background: var(--s2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .cg-val {
+            font-family: 'Clash Display', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+        }
+
+        .cg-lbl {
+            font-size: .58rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .need-box {
+            margin-top: 12px;
+            padding: 12px 14px;
+            border-radius: 11px;
+            font-size: .8rem;
+            font-weight: 600;
+            line-height: 1.55;
+        }
+
+        .nb-good {
+            background: rgba(0, 229, 160, .08);
+            border: 1px solid rgba(0, 229, 160, .2);
+            color: var(--green);
+        }
+
+        .nb-warn {
+            background: rgba(255, 184, 48, .08);
+            border: 1px solid rgba(255, 184, 48, .2);
+            color: var(--yellow);
+        }
+
+        .nb-bad {
+            background: rgba(255, 95, 95, .08);
+            border: 1px solid rgba(255, 95, 95, .2);
+            color: var(--red);
+        }
+
+
+        /* ── SETTINGS ── */
+        .set-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .add-subj-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, var(--c0), var(--c1));
+            border: none;
+            border-radius: 10px;
+            padding: 9px 18px;
+            color: #fff;
+            font-family: 'Cabinet Grotesk', sans-serif;
+            font-weight: 800;
+            font-size: .82rem;
+            cursor: pointer;
+            transition: opacity .18s, transform .15s;
+        }
+
+        .add-subj-btn:hover {
+            opacity: .85;
+            transform: translateY(-1px);
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, var(--c0), var(--c1));
+            border: none;
+            border-radius: 11px;
+            padding: 11px 28px;
+            color: #fff;
+            font-family: 'Cabinet Grotesk', sans-serif;
+            font-weight: 800;
+            font-size: .88rem;
+            cursor: pointer;
+            transition: opacity .18s, transform .15s;
+            margin-top: 8px;
+        }
+
+        .save-btn:hover {
+            opacity: .85;
+            transform: translateY(-1px);
+        }
+
+        .scard {
+            background: var(--s1);
+            border: 1px solid var(--border2);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 12px;
+            animation: fadeUp .35s ease both;
+        }
+
+        .scard-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .scard-head-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .scard-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .scard-name-inp {
+            background: var(--s2);
+            border: 1.5px solid var(--border2);
+            border-radius: 8px;
+            padding: 6px 10px;
+            color: var(--text);
+            font-family: 'Clash Display', sans-serif;
+            font-size: .9rem;
+            font-weight: 600;
+            width: 90px;
+            outline: none;
+            transition: border-color .18s;
+        }
+
+        .scard-name-inp:focus {
+            border-color: var(--c0);
+        }
+
+        .scard-full-inp {
+            background: var(--s2);
+            border: 1.5px solid var(--border2);
+            border-radius: 8px;
+            padding: 6px 10px;
+            color: var(--text);
+            font-family: 'Cabinet Grotesk', sans-serif;
+            font-size: .8rem;
+            width: 200px;
+            outline: none;
+            transition: border-color .18s;
+        }
+
+        .scard-full-inp:focus {
+            border-color: var(--c0);
+        }
+
+        .del-subj-btn {
+            background: rgba(255, 95, 95, .1);
+            border: 1px solid rgba(255, 95, 95, .2);
+            border-radius: 8px;
+            padding: 6px 12px;
+            color: var(--red);
+            font-family: 'Cabinet Grotesk', sans-serif;
+            font-size: .72rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .del-subj-btn:hover {
+            background: rgba(255, 95, 95, .2);
+        }
+
+        /* weightage row */
+        .wt-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+            padding: 10px 14px;
+            background: var(--s2);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .wt-lbl {
+            font-size: .6rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-right: 4px;
+        }
+
+        .wt-sum-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .7rem;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            margin-left: 4px;
+        }
+
+        .wt-ok {
+            background: rgba(0, 229, 160, .12);
+            color: var(--green);
+        }
+
+        .wt-bad {
+            background: rgba(255, 95, 95, .12);
+            color: var(--red);
+        }
+
+        /* components section */
+        .comps-section {
+            margin-bottom: 12px;
+        }
+
+        .comps-label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .comps-label {
+            font-size: .62rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .add-comp-wrap {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .comp-preset-btn {
+            background: var(--s2);
+            border: 1px dashed var(--border2);
+            border-radius: 7px;
+            padding: 4px 10px;
+            font-family: 'Cabinet Grotesk', sans-serif;
+            font-size: .7rem;
+            font-weight: 700;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .comp-preset-btn:hover {
+            border-color: var(--c2);
+            color: var(--c2);
+        }
+
+        .add-custom-btn {
+            background: var(--s2);
+            border: 1.5px dashed var(--c0);
+            border-radius: 7px;
+            padding: 4px 11px;
+            font-family: 'Cabinet Grotesk', sans-serif;
+            font-size: .7rem;
+            font-weight: 700;
+            color: var(--c0);
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .add-custom-btn:hover {
+            background: rgba(124, 111, 255, .1);
+        }
+
+        .comp-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 8px;
+        }
+
+        .comp-block {
+            background: var(--s2);
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            padding: 12px;
+        }
+
+        .comp-block-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .comp-name-inp {
+            background: var(--s3);
+            border: 1px solid var(--border2);
+            border-radius: 7px;
+            padding: 4px 9px;
+            color: var(--text);
+            font-family: 'Cabinet Grotesk', sans-serif;
+            font-size: .78rem;
+            font-weight: 700;
+            width: 100px;
+            outline: none;
+        }
+
+        .comp-name-inp:focus {
+            border-color: var(--c0);
+        }
+
+        .comp-del-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: .85rem;
+            cursor: pointer;
+            padding: 3px 5px;
+            border-radius: 5px;
+            transition: color .15s;
+        }
+
+        .comp-del-btn:hover {
+            color: var(--red);
+        }
+
+        .comp-marks-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .comp-marks-row span {
+            font-size: .7rem;
+            color: var(--muted);
+        }
+
+        .cinp {
+            background: var(--s3);
+            border: 1.5px solid var(--border2);
+            border-radius: 7px;
+            padding: 6px 9px;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .8rem;
+            width: 68px;
+            outline: none;
+            transition: border-color .18s;
+        }
+
+        .cinp:focus {
+            border-color: var(--c0);
+        }
+
+        .cinp-wide {
+            width: 88px;
+        }
+
+        .comp-wt-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .comp-wt-row label {
+            font-size: .62rem;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .cinp-wt {
+            width: 56px;
+        }
+
+        /* sub-items (e.g. contests inside a comp) */
+        .sub-items {
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .sub-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--s3);
+            border: 1px solid var(--border2);
+            border-radius: 7px;
+            padding: 6px 9px;
+        }
+
+        .sub-item-lbl {
+            font-size: .65rem;
+            font-weight: 700;
+            color: var(--muted);
+            min-width: 22px;
+        }
+
+        .sub-del {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: .75rem;
+            cursor: pointer;
+            padding: 2px;
+            transition: color .15s;
+        }
+
+        .sub-del:hover {
+            color: var(--red);
+        }
+
+        .add-sub-btn {
+            margin-top: 5px;
+            background: none;
+            border: 1px dashed var(--border2);
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: .65rem;
+            font-weight: 700;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all .15s;
+            width: 100%;
+        }
+
+        .add-sub-btn:hover {
+            border-color: var(--c3);
+            color: var(--c3);
+        }
+
+        /* ── MODAL ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .78);
+            backdrop-filter: blur(12px);
+            z-index: 500;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal-box {
+            background: var(--s1);
+            border: 1px solid var(--border2);
+            border-radius: 20px;
+            padding: 26px;
+            width: 500px;
+            max-width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            animation: popIn .22s cubic-bezier(.17, .67, .35, 1.1);
+            position: relative;
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(.93)
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1)
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: var(--s2);
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            color: var(--muted);
+            font-size: .9rem;
+            cursor: pointer;
+            transition: color .15s;
+        }
+
+        .modal-close:hover {
+            color: var(--text);
+        }
+
+        .det-comp {
+            background: var(--s2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 9px;
+        }
+
+        .det-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .det-title {
+            font-size: .8rem;
+            font-weight: 700;
+        }
+
+        .det-score {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .78rem;
+            color: var(--muted);
+        }
+
+        .det-bar {
+            height: 7px;
+            background: var(--s3);
+            border-radius: 100px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .det-fill {
+            height: 100%;
+            border-radius: 100px;
+            transition: width 1.2s cubic-bezier(.17, .67, .35, 1);
+        }
+
+        .det-contrib {
+            font-size: .65rem;
+            color: var(--muted);
+        }
+
+        /* add subject modal */
+        .asub-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .asub-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .asub-label {
+            font-size: .62rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .asub-inp {
+            background: var(--s2);
+            border: 1.5px solid var(--border2);
+            border-radius: 9px;
+            padding: 9px 12px;
+            color: var(--text);
+            font-family: 'Cabinet Grotesk', sans-serif;
+            font-size: .88rem;
+            width: 100%;
+            outline: none;
+            transition: border-color .18s;
+        }
+
+        .asub-inp:focus {
+            border-color: var(--c0);
+        }
+
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+            margin-top: 4px;
+        }
+
+        .icon-opt {
+            background: var(--s2);
+            border: 1.5px solid var(--border2);
+            border-radius: 7px;
+            padding: 6px;
+            text-align: center;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .icon-opt:hover,
+        .icon-opt.sel {
+            border-color: var(--c0);
+            background: rgba(124, 111, 255, .12);
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+            margin-top: 4px;
+        }
+
+        .color-opt {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 6px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .color-opt:hover,
+        .color-opt.sel {
+            border-color: #fff;
+            transform: scale(1.1);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 9px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .btn-cancel {
+            background: var(--s2);
+            border: none;
+            border-radius: 9px;
+            padding: 9px 20px;
+            color: var(--muted);
+            font-family: 'Cabinet Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: .82rem;
+            cursor: pointer;
+        }
+
+        .btn-ok {
+            background: linear-gradient(135deg, var(--c0), var(--c1));
+            border: none;
+            border-radius: 9px;
+            padding: 9px 22px;
+            color: #fff;
+            font-family: 'Cabinet Grotesk', sans-serif;
+            font-weight: 800;
+            font-size: .82rem;
+            cursor: pointer;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(14px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+
+    <!-- TOPBAR -->
+    <nav class="topbar">
+        <div class="brand">
+            <div class="brand-dot"></div>SEM 4 MARKS
+        </div>
+        <div class="tabs">
+            <button class="tab active" onclick="goPage('dash',this)">Dashboard</button>
+            <button class="tab" onclick="goPage('overall',this)">Overall</button>
+            <button class="tab" onclick="goPage('cgpa',this)">CGPA</button>
+            <button class="tab" onclick="goPage('settings',this)">Settings</button>
+        </div>
+        <div class="nav-cgpa">CGPA <span class="cgpa-badge" id="navCgpa">—</span></div>
+    </nav>
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dash">
+        <div class="wrap">
+            <div class="hero-bar" id="heroBar"></div>
+            <div class="sec-lbl">Subject Breakdown</div>
+            <div class="subj-grid" id="subjGrid"></div>
+        </div>
+    </div>
+
+    <!-- OVERALL -->
+    <div class="page" id="page-overall">
+        <div class="wrap">
+            <div class="sec-lbl">Performance Overview</div>
+            <div class="perf-grid">
+                <div class="card">
+                    <div class="card-title">Score by Subject</div>
+                    <div id="perfBars"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Grade Summary</div>
+                    <div id="gradeSummary"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Full Component Breakdown</div>
+                <div style="overflow-x:auto">
+                    <table class="sum-tbl" id="sumTbl"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CGPA -->
+    <div class="page" id="page-cgpa">
+        <div class="wrap">
+            <div class="sec-lbl">CGPA Target Tracker</div>
+            <div class="cgpa-wrap">
+                <div>
+                    <div class="ring-card">
+                        <div class="ring-outer">
+                            <svg width="150" height="150" viewBox="0 0 150 150">
+                                <circle cx="75" cy="75" r="62" fill="none" stroke="rgba(255,255,255,.05)"
+                                    stroke-width="13" />
+                                <circle cx="75" cy="75" r="62" fill="none" stroke-width="13" stroke-linecap="round"
+                                    stroke-dasharray="389.6" id="ringArc" stroke-dashoffset="389.6"
+                                    style="transition:stroke-dashoffset 1.2s cubic-bezier(.17,.67,.35,1)"
+                                    stroke="url(#rg)" />
+                                <defs>
+                                    <linearGradient id="rg" x1="0" y1="0" x2="1" y2="1">
+                                        <stop offset="0%" stop-color="#7c6fff" />
+                                        <stop offset="100%" stop-color="#00e5a0" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <div class="ring-center">
+                                <div class="ring-num" id="ringVal">—</div>
+                                <div class="ring-lbl">CGPA</div>
+                            </div>
+                        </div>
+                        <div id="subGradeList"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="ctrl-card">
+                        <div class="card-title">Your Targets</div>
+                        <div class="ctrl-row">
+                            <div class="ctrl-grp">
+                                <div class="ctrl-lbl">Target CGPA</div><input class="ctrl-inp" id="cgpaTarget"
+                                    type="number" min="1" max="10" step="0.1" value="8.5" oninput="renderCGPA()">
+                            </div>
+                            <div class="ctrl-grp">
+                                <div class="ctrl-lbl">Prev CGPA</div><input class="ctrl-inp" id="cgpaPrev" type="number"
+                                    min="0" max="10" step="0.1" placeholder="Optional" oninput="renderCGPA()">
+                            </div>
+                            <div class="ctrl-grp">
+                                <div class="ctrl-lbl">Prev Sems</div><input class="ctrl-inp" id="cgpaSems" type="number"
+                                    min="0" max="10" value="3" oninput="renderCGPA()">
+                            </div>
+                        </div>
+                        <div class="cg-grid" id="cgpaStats"></div>
+                        <div id="cgpaNeedMsg"></div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+        <div class="wrap">
+            <div class="set-toolbar">
+                <div class="sec-lbl" style="margin:0;flex:1">Configure Subjects &amp; Marks</div>
+                <button class="add-subj-btn" onclick="openAddSubject()">＋ Add Subject</button>
+            </div>
+            <div id="settingsForm"></div>
+            <button class="save-btn" onclick="saveSettings()">💾 Save All Marks</button>
+        </div>
+    </div>
+
+    <!-- DETAIL MODAL -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal-box" id="detailBox"><button class="modal-close" onclick="closeDetail()">✕</button></div>
+    </div>
+
+    <!-- ALERT/CONFIRM MODAL -->
+    <div class="modal-overlay" id="dialogModal" style="z-index:999">
+        <div class="modal-box" style="width:380px;text-align:center;padding:30px">
+            <div id="dialogText" style="margin-bottom:20px;font-size:1.05rem;font-weight:600;white-space:pre-wrap;">
+            </div>
+            <div style="display:flex;gap:10px;justify-content:center">
+                <button class="btn-cancel" id="dialogCancel" style="display:none">Cancel</button>
+                <button class="btn-ok" id="dialogOk">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD SUBJECT MODAL -->
+    <div class="modal-overlay" id="addSubjModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeAddSubject()">✕</button>
+            <h2 style="font-family:'Clash Display',sans-serif;font-size:1.1rem;margin-bottom:20px">Add New Subject</h2>
+            <div class="asub-form">
+                <div class="asub-group">
+                    <div class="asub-label">Short Name (e.g. AI)</div>
+                    <input class="asub-inp" id="newKey" placeholder="AI" maxlength="8">
+                </div>
+                <div class="asub-group">
+                    <div class="asub-label">Full Name</div>
+                    <input class="asub-inp" id="newFull" placeholder="Artificial Intelligence">
+                </div>
+            </div>
+            <div style="margin-top:14px">
+                <div class="asub-label" style="margin-bottom:6px">Icon</div>
+                <div class="icon-grid" id="iconGrid"></div>
+            </div>
+            <div style="margin-top:14px">
+                <div class="asub-label" style="margin-bottom:6px">Color</div>
+                <div class="color-grid" id="colorGrid"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeAddSubject()">Cancel</button>
+                <button class="btn-ok" onclick="confirmAddSubject()">Add Subject</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ─── PALETTE ───
+        const PALETTE_COLORS = ['#7c6fff', '#ff5fa0', '#00e5a0', '#ffb830', '#38beff', '#d45cff', '#ff8c42', '#4ade80', '#f87171', '#facc15', '#22d3ee', '#a78bfa'];
+        const PALETTE_ICONS = ['🤖', '📊', '⚙️', '📈', '🔢', '🌐', '🧪', '📐', '🎯', '💡', '📡', '🔬', '🧠', '💻', '📚', '🏗️', '🎲', '⚡'];
+        const COLOR_VARS = ['--c0', '--c1', '--c2', '--c3', '--c4', '--c5', '--c6', '--c7'];
+
+        // ─── DATA STRUCTURE ───
+
+        function myAlert(msg) {
+            document.getElementById('dialogText').textContent = msg;
+            document.getElementById('dialogCancel').style.display = 'none';
+            const okBtn = document.getElementById('dialogOk');
+            okBtn.onclick = () => document.getElementById('dialogModal').classList.remove('open');
+            document.getElementById('dialogModal').classList.add('open');
+        }
+
+        function myConfirm(msg, onConfirm) {
+            document.getElementById('dialogText').textContent = msg;
+            document.getElementById('dialogCancel').style.display = 'inline-block';
+            const okBtn = document.getElementById('dialogOk');
+            const cnBtn = document.getElementById('dialogCancel');
+            okBtn.onclick = () => {
+                document.getElementById('dialogModal').classList.remove('open');
+                if (onConfirm) onConfirm();
+            };
+            cnBtn.onclick = () => document.getElementById('dialogModal').classList.remove('open');
+            document.getElementById('dialogModal').classList.add('open');
+        }
+
+        // Subject: { key, name, icon, color, components: [{id, name, type, weight, items:[{obt,max}]}] }
+        // type: 'single' = one score, 'multi' = multiple sub-scores (e.g. contests)
+        function defSubject(key, name, icon, color) {
+            return {
+                key, name, icon, color,
+                components: [
+                    { id: uid(), name: 'End Sem', type: 'single', weight: 60, items: [{ obt: 0, max: 100 }] },
+                    { id: uid(), name: 'Mid Sem', type: 'single', weight: 30, items: [{ obt: 0, max: 50 }] },
+                    { id: uid(), name: 'Contests', type: 'multi', weight: 10, items: [{ obt: 0, max: 25 }, { obt: 0, max: 25 }] },
+                ]
+            };
+        }
+
+        let subjects = [
+            defSubject('AI', 'Artificial Intelligence', '🤖', '#7c6fff'),
+            defSubject('ML', 'Machine Learning', '📊', '#ff5fa0'),
+            defSubject('SESD', 'Software Engg & Sys Design', '⚙️', '#00e5a0'),
+            defSubject('DVA', 'Data Visualisation & Anal.', '📈', '#ffb830'),
+            defSubject('MATHS', 'Engineering Mathematics', '🔢', '#38beff'),
+            defSubject('FSD', 'Full Stack Development', '🌐', '#d45cff'),
+        ];
+
+        function uid() { return Math.random().toString(36).slice(2, 9); }
+
+        // ─── SCORE HELPERS ───
+        function compScore(comp) {
+            // returns percentage 0-100
+            if (comp.type === 'single') {
+                const it = comp.items[0];
+                return it.max > 0 ? Math.min(100, it.obt / it.max * 100) : 0;
+            } else {
+                if (!comp.items.length) return 0;
+                return comp.items.reduce((a, it) => a + (it.max > 0 ? Math.min(100, it.obt / it.max * 100) : 0), 0) / comp.items.length;
+            }
+        }
+        function subjScore(subj) {
+            const totalWt = subj.components.reduce((a, c) => a + c.weight, 0);
+            if (!totalWt) return 0;
+            return subj.components.reduce((a, c) => a + compScore(c) * (c.weight / totalWt), 0);
+        }
+        function grade(p) {
+            if (p >= 90) return 'O'; if (p >= 80) return 'A+'; if (p >= 70) return 'A';
+            if (p >= 60) return 'B+'; if (p >= 50) return 'B'; if (p >= 40) return 'C'; return 'F';
+        }
+        function gp(g) { return { O: 10, 'A+': 9, A: 8, 'B+': 7, B: 6, C: 5, F: 0 }[g] || 0; }
+        function gc(g) { return { O: 'gO', 'A+': 'gAp', A: 'gA', 'B+': 'gBp', B: 'gB', C: 'gC', F: 'gF' }[g] || 'gC'; }
+        function cgpa() {
+            if (!subjects.length) return '—';
+            const pts = subjects.map(s => gp(grade(subjScore(s))));
+            return (pts.reduce((a, b) => a + b, 0) / subjects.length).toFixed(2);
+        }
+        function pct(o, m) { return m > 0 ? Math.min(100, o / m * 100) : 0; }
+        function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+
+        // ─── NAV ───
+        function goPage(id, btn) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+            document.getElementById('page-' + id).classList.add('active');
+            if (btn) btn.classList.add('active');
+            ({ dash: renderDash, overall: renderOverall, cgpa: renderCGPA, settings: renderSettings }[id])();
+            updateNavCgpa();
+        }
+        function updateNavCgpa() { document.getElementById('navCgpa').textContent = cgpa(); }
+
+        // ─── DASHBOARD ───
+        function renderDash() {
+            if (!subjects.length) {
+                document.getElementById('heroBar').innerHTML = '';
+                document.getElementById('subjGrid').innerHTML = '<div style="color:var(--muted);padding:40px;text-align:center;font-size:.9rem">No subjects yet. Go to Settings → Add Subject.</div>';
+                return;
+            }
+            const scores = subjects.map(s => subjScore(s));
+            const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+            const best = subjects[scores.indexOf(Math.max(...scores))];
+            const g = grade(avg);
+
+            document.getElementById('heroBar').innerHTML = `
+    <div class="hs" style="animation-delay:.04s"><div class="hs-lbl">Avg Score</div><div class="hs-val" style="background:linear-gradient(90deg,var(--c0),var(--c5));-webkit-background-clip:text;-webkit-text-fill-color:transparent">${avg.toFixed(1)}%</div><div class="hs-sub">${subjects.length} subjects</div></div>
+    <div class="hs" style="animation-delay:.08s"><div class="hs-lbl">Est. CGPA</div><div class="hs-val" style="color:var(--green)">${cgpa()}</div><div class="hs-sub">this semester</div></div>
+    <div class="hs" style="animation-delay:.12s"><div class="hs-lbl">Overall Grade</div><div class="hs-val"><span class="gp ${gc(g)}" style="font-size:1.2rem;padding:4px 14px">${g}</span></div><div class="hs-sub">semester</div></div>
+    <div class="hs" style="animation-delay:.16s"><div class="hs-lbl">Best Subject</div><div class="hs-val" style="font-size:1.1rem">${best.icon} <span style="color:${best.color}">${best.key}</span></div><div class="hs-sub">${scores[subjects.indexOf(best)].toFixed(1)}% · ${grade(scores[subjects.indexOf(best)])}</div></div>
+  `;
+
+            let html = '';
+            subjects.forEach((s, i) => {
+                const sc = subjScore(s), g = grade(sc);
+                const totalWt = s.components.reduce((a, c) => a + c.weight, 0);
+                const topComps = s.components.slice(0, 4);
+                html += `
+    <div class="sc" onclick="openDetail('${s.key}')" style="animation-delay:${i * .06}s;--hover-clr:${s.color}">
+      <div class="sc-top">
+        <div class="sc-left">
+          <div class="sc-ico" style="background:${hexAlpha(s.color, .12)}">${s.icon}</div>
+          <div><div class="sc-key">${s.key}</div><div class="sc-full">${s.name}</div></div>
+        </div>
+        <div class="sc-right">
+          <div class="sc-pct" style="color:${s.color}">${sc.toFixed(1)}<span style="font-size:.7rem;color:var(--muted)">/100</span></div>
+          <div style="margin-top:4px"><span class="gp ${gc(g)}">${g}</span></div>
+        </div>
+      </div>
+      <div class="sc-body">
+        <div class="comp-mini">
+          ${topComps.map(c => {
+                    const cp = compScore(c);
+                    const shortName = c.name.length > 6 ? c.name.slice(0, 5) + '…' : c.name;
+                    return `<div class="cm-row">
+              <span class="cm-tag">${shortName}</span>
+              <div class="cm-bar"><div class="cm-fill" style="width:${cp}%;background:${s.color}"></div></div>
+              <span class="cm-val">${cp.toFixed(0)}%</span>
+            </div>`;
+                }).join('')}
+          ${s.components.length > 4 ? `<div style="font-size:.62rem;color:var(--muted);text-align:center;margin-top:2px">+${s.components.length - 4} more</div>` : ''}
+        </div>
+      </div>
+      <div class="sc-footer">
+        <div class="sc-chips">
+          ${s.components.map(c => `<span class="sc-chip">${c.name.slice(0, 4)} ${c.weight}%</span>`).join('')}
+        </div>
+        <button class="det-btn" onclick="event.stopPropagation();openDetail('${s.key}')">Details →</button>
+      </div>
+    </div>`;
+            });
+            document.getElementById('subjGrid').innerHTML = html;
+            animBars();
+        }
+
+        function hexAlpha(hex, alpha) {
+            // convert hex to rgba
+            const r = parseInt(hex.slice(1, 3), 16), g2 = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+            return `rgba(${r},${g2},${b},${alpha})`;
+        }
+
+        // ─── DETAIL MODAL ───
+        function openDetail(key) {
+            const s = subjects.find(x => x.key === key);
+            const sc = subjScore(s), g = grade(sc);
+            const nextG = { F: 'C', C: 'B', B: 'B+', 'B+': 'A', A: 'A+', 'A+': 'O', O: null }[g];
+            const needPct = { C: 40, B: 50, 'B+': 60, A: 70, 'A+': 80, O: 90 }[nextG];
+            const gap = nextG ? (needPct - sc).toFixed(1) : null;
+            const totalWt = s.components.reduce((a, c) => a + c.weight, 0);
+
+            let compHtml = '';
+            s.components.forEach(c => {
+                const cp = compScore(c);
+                const contrib = (cp * c.weight / (totalWt || 100)).toFixed(2);
+                let itemsHtml = '';
+                if (c.type === 'multi') {
+                    itemsHtml = c.items.map((it, ii) => {
+                        const ip = pct(it.obt, it.max);
+                        return `<div style="margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+            <span style="font-size:.7rem;color:var(--muted);font-weight:600">Item ${ii + 1}</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--muted)">${it.obt}/${it.max} (${ip.toFixed(0)}%)</span>
+          </div>
+          <div class="det-bar"><div class="det-fill" style="width:${ip}%;background:${s.color};opacity:.65"></div></div>
+        </div>`;
+                    }).join('');
+                } else {
+                    const it = c.items[0];
+                    itemsHtml = `<div style="font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--muted);margin-bottom:5px">${it.obt} / ${it.max}</div>`;
+                }
+
+                compHtml += `<div class="det-comp">
+      <div class="det-head">
+        <span class="det-title">${c.name}</span>
+        <span class="det-score">${cp.toFixed(1)}% &nbsp;<span style="font-size:.65rem;color:var(--muted)">(wt ${c.weight}%)</span></span>
+      </div>
+      <div class="det-bar"><div class="det-fill" style="width:${cp}%;background:${s.color}"></div></div>
+      ${itemsHtml}
+      <div class="det-contrib">Contributes <b style="color:${s.color}">${contrib} pts</b> to total</div>
+    </div>`;
+            });
+
+            document.getElementById('detailBox').innerHTML = `
+    <button class="modal-close" onclick="closeDetail()">✕</button>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+      <div style="width:44px;height:44px;border-radius:11px;background:${hexAlpha(s.color, .14)};display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">${s.icon}</div>
+      <div>
+        <div style="font-family:'Clash Display',sans-serif;font-size:1.1rem;font-weight:600">${s.key} — ${s.name}</div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:2px">Score: <b style="color:${s.color}">${sc.toFixed(2)}/100</b> &nbsp;<span class="gp ${gc(g)}">${g}</span> &nbsp; ${gp(g)} Grade Points</div>
+      </div>
+    </div>
+    ${compHtml}
+    ${nextG
+                    ? `<div class="need-box ${parseFloat(gap) <= 10 ? 'nb-warn' : 'nb-bad'}">Need <b>${gap} more pts</b> for grade <b>${nextG}</b> (≥${needPct}%) &nbsp;${parseFloat(gap) <= 5 ? '🔥 Almost!' : parseFloat(gap) <= 15 ? '📈 Keep going!' : '💪 Push harder.'}</div>`
+                    : `<div class="need-box nb-good">🎉 Outstanding! Highest grade achieved.</div>`
+                }`;
+            document.getElementById('detailModal').classList.add('open');
+            setTimeout(() => {
+                document.querySelectorAll('#detailBox .det-fill').forEach(el => {
+                    const w = el.style.width; el.style.width = '0';
+                    requestAnimationFrame(() => requestAnimationFrame(() => { el.style.width = w; }));
+                });
+            }, 60);
+        }
+        function closeDetail() { document.getElementById('detailModal').classList.remove('open'); }
+        document.getElementById('detailModal').addEventListener('click', e => { if (e.target === document.getElementById('detailModal')) closeDetail(); });
+
+        // ─── OVERALL ───
+        function renderOverall() {
+            if (!subjects.length) { document.getElementById('perfBars').innerHTML = '<div style="color:var(--muted)">No subjects.</div>'; return; }
+            let pbH = '';
+            subjects.forEach(s => {
+                const sc = subjScore(s);
+                pbH += `<div class="pb-row"><span class="pb-lbl" style="color:${s.color}">${s.key}</span><div class="pb-track"><div class="pb-fill" id="pb-${s.key}" style="width:0%;background:${s.color}"></div></div><span class="pb-num">${sc.toFixed(1)}%</span></div>`;
+            });
+            document.getElementById('perfBars').innerHTML = pbH;
+            setTimeout(() => subjects.forEach(s => { const el = document.getElementById('pb-' + s.key); if (el) el.style.width = subjScore(s) + '%'; }), 80);
+
+            document.getElementById('gradeSummary').innerHTML = `<div style="display:flex;flex-direction:column;gap:6px">
+    ${subjects.map(s => { const sc = subjScore(s), g = grade(sc); return `<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span style="font-size:.8rem">${s.icon} <b>${s.key}</b></span><span style="display:flex;align-items:center;gap:7px"><span style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--muted)">${sc.toFixed(1)}%</span><span class="gp ${gc(g)}">${g}</span><span style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--muted)">${gp(g)}pts</span></span></div>`; }).join('')}
+    <div style="display:flex;justify-content:space-between;padding-top:8px"><span style="font-size:.75rem;font-weight:700;color:var(--muted)">EST. CGPA</span><span style="font-family:'JetBrains Mono',monospace;font-size:1.15rem;font-weight:700;color:var(--green)">${cgpa()}</span></div>
+  </div>`;
+
+            let tH = `<tr><th>Subject</th><th>Components</th><th>Weighted Score</th><th>Grade</th><th>Grade Points</th></tr>`;
+            subjects.forEach(s => {
+                const sc = subjScore(s), g = grade(sc);
+                const compSummary = s.components.map(c => `<span style="font-family:'JetBrains Mono',monospace;font-size:.65rem">${c.name}: ${compScore(c).toFixed(0)}%</span>`).join('<span style="color:var(--border2)"> · </span>');
+                tH += `<tr class="tr-body"><td><b style="color:${s.color}">${s.icon} ${s.key}</b><div style="font-size:.65rem;color:var(--muted)">${s.name}</div></td><td>${compSummary}</td><td style="font-weight:800;color:${s.color}">${sc.toFixed(2)}%</td><td><span class="gp ${gc(g)}">${g}</span></td><td style="font-family:'JetBrains Mono',monospace;font-weight:700">${gp(g)}</td></tr>`;
+            });
+            tH += `<tr class="tr-total"><td colspan="3" style="text-align:right;color:var(--muted);font-size:.75rem">SEMESTER CGPA</td><td></td><td style="font-family:'JetBrains Mono',monospace;font-size:1.1rem;color:var(--green)">${cgpa()}</td></tr>`;
+            document.getElementById('sumTbl').innerHTML = tH;
+        }
+
+        // ─── CGPA ───
+        function renderCGPA() {
+            const cur = parseFloat(cgpa() === '—' ? 0 : cgpa());
+            const target = parseFloat(document.getElementById('cgpaTarget')?.value || 8.5);
+            const prev = parseFloat(document.getElementById('cgpaPrev')?.value || 0);
+            const prevS = parseInt(document.getElementById('cgpaSems')?.value || 0);
+            const arc = document.getElementById('ringArc');
+            const fill = clamp(cur / 10, 0, 1);
+            arc.style.strokeDashoffset = 389.6 - (fill * 389.6);
+            const rv = document.getElementById('ringVal');
+            rv.textContent = cur.toFixed(2); rv.style.color = cur >= target ? 'var(--green)' : 'var(--red)';
+            const cumul = prev > 0 && prevS > 0 ? ((prev * prevS + cur) / (prevS + 1)).toFixed(2) : cur.toFixed(2);
+            document.getElementById('cgpaStats').innerHTML = `
+    <div class="cg-stat"><div class="cg-val" style="color:var(--green)">${cur.toFixed(2)}</div><div class="cg-lbl">This Sem</div></div>
+    <div class="cg-stat"><div class="cg-val" style="color:${parseFloat(cumul) >= target ? 'var(--green)' : 'var(--yellow)'}">${cumul}</div><div class="cg-lbl">Cumulative</div></div>
+    <div class="cg-stat"><div class="cg-val" style="color:var(--c0)">${target}</div><div class="cg-lbl">Target</div></div>
+    <div class="cg-stat"><div class="cg-val">${cur >= target ? '✅' : '❌'}</div><div class="cg-lbl">Target Met</div></div>
+  `;
+            const diff = (target - cur).toFixed(2);
+            let msg = '', cls = '';
+            if (cur >= target) { msg = `🎉 <b>Target achieved!</b> ${cur.toFixed(2)} ≥ ${target}. Outstanding!`; cls = 'nb-good'; }
+            else if (diff <= 0.5) { msg = `🔥 Just <b>${diff} points</b> away from ${target}. So close!`; cls = 'nb-warn'; }
+            else { msg = `📈 At <b>${cur.toFixed(2)}</b> — need <b>${diff} more</b> to hit ${target}.`; cls = 'nb-bad'; }
+            document.getElementById('cgpaNeedMsg').innerHTML = `<div class="need-box ${cls}" style="margin-top:12px">${msg}</div>`;
+            document.getElementById('subGradeList').innerHTML = subjects.map(s => { const sc = subjScore(s), g = grade(sc); return `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)"><span style="font-size:.75rem">${s.icon} ${s.key}</span><span style="display:flex;align-items:center;gap:5px"><span class="gp ${gc(g)}">${g}</span><span style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--muted)">${gp(g)}pts</span></span></div>`; }).join('');
+        }
+
+        // ─── SETTINGS ───
+        function renderSettings() {
+            let html = '';
+            subjects.forEach((s, si) => {
+                const totalWt = s.components.reduce((a, c) => a + c.weight, 0);
+                const wtOk = totalWt === 100;
+                html += `
+    <div class="scard" style="animation-delay:${si * .05}s" id="scard-${s.key}">
+      <div class="scard-head">
+        <div class="scard-head-left">
+          <div class="scard-icon" style="background:${hexAlpha(s.color, .14)}">${s.icon}</div>
+          <div>
+            <input class="scard-name-inp" id="sk-${s.key}" value="${s.key}" placeholder="Key" maxlength="8">
+            <input class="scard-full-inp" id="sf-${s.key}" value="${s.name}" placeholder="Full Name" style="margin-left:6px">
+          </div>
+        </div>
+        <button class="del-subj-btn" onclick="deleteSubject(${si})">🗑 Delete Subject</button>
+      </div>
+
+      <!-- Weightage summary -->
+      <div class="wt-row" id="wtr-${s.key}">
+        <span class="wt-lbl">Total Weightage:</span>
+        <span class="wt-sum-badge ${wtOk ? 'wt-ok' : 'wt-bad'}" id="wtb-${s.key}">${totalWt}/100 ${wtOk ? '✓' : '⚠ must = 100'}</span>
+        <span style="font-size:.65rem;color:var(--muted);margin-left:4px">— adjust weights in each component below</span>
+      </div>
+
+      <!-- Components -->
+      <div class="comps-section">
+        <div class="comps-label-row">
+          <span class="comps-label">Components</span>
+          <div class="add-comp-wrap">
+            <button class="comp-preset-btn" onclick="addComp('${s.key}','End Sem','single')">+ End Sem</button>
+            <button class="comp-preset-btn" onclick="addComp('${s.key}','Mid Sem','single')">+ Mid Sem</button>
+            <button class="comp-preset-btn" onclick="addComp('${s.key}','Workshop','single')">+ Workshop</button>
+            <button class="comp-preset-btn" onclick="addComp('${s.key}','Project','single')">+ Project</button>
+            <button class="comp-preset-btn" onclick="addComp('${s.key}','Contests','multi')">+ Contests</button>
+            <button class="add-custom-btn" onclick="addComp('${s.key}','Custom','single')">+ Custom</button>
+          </div>
+        </div>
+        <div class="comp-grid" id="cg-${s.key}">
+          ${s.components.map(c => renderCompBlock(s.key, c)).join('')}
+        </div>
+      </div>
+    </div>`;
+            });
+            if (!subjects.length) html = `<div style="color:var(--muted);padding:40px;text-align:center;font-size:.9rem;background:var(--s1);border-radius:16px;border:1px dashed var(--border2)">No subjects yet — click <b style="color:var(--c0)">＋ Add Subject</b> to get started.</div>`;
+            document.getElementById('settingsForm').innerHTML = html;
+        }
+
+        function renderCompBlock(skey, c) {
+            const s = subjects.find(x => x.key === skey);
+            return `<div class="comp-block" id="cb-${c.id}">
+    <div class="comp-block-head">
+      <input class="comp-name-inp" id="cn-${c.id}" value="${c.name}" placeholder="Name" oninput="liveCompName('${skey}','${c.id}',this.value)">
+      <button class="comp-del-btn" onclick="deleteComp('${skey}','${c.id}')">✕</button>
+    </div>
+    <div class="comp-marks-row">
+      <span>Weight</span>
+      <input class="cinp cinp-wt" type="number" min="0" max="100" id="cw-${c.id}" value="${c.weight}" oninput="liveWtUpdate('${skey}')">
+      <span>%</span>
+    </div>
+    ${c.type === 'single'
+                    ? `<div class="comp-marks-row">
+          <input class="cinp cinp-wide" type="number" min="0" id="ci0o-${c.id}" value="${c.items[0].obt}" placeholder="Obtained">
+          <span>/ </span>
+          <input class="cinp" type="number" min="1" id="ci0m-${c.id}" value="${c.items[0].max}" placeholder="Max">
+        </div>`
+                    : `<div class="sub-items" id="si-${c.id}">
+          ${c.items.map((it, ii) => `
+          <div class="sub-item" id="sirow-${c.id}-${ii}">
+            <span class="sub-item-lbl">#${ii + 1}</span>
+            <input class="cinp cinp-wide" type="number" min="0" id="cio-${c.id}-${ii}" value="${it.obt}" placeholder="Obt">
+            <span style="font-size:.65rem;color:var(--muted)">/</span>
+            <input class="cinp" type="number" min="1" id="cim-${c.id}-${ii}" value="${it.max}" placeholder="Max">
+            <button class="sub-del" onclick="delSubItem('${skey}','${c.id}',${ii})">✕</button>
+          </div>`).join('')}
+        </div>
+        <button class="add-sub-btn" onclick="addSubItem('${skey}','${c.id}')">＋ Add Item</button>`
+                }
+  </div>`;
+        }
+
+        function liveWtUpdate(skey) {
+            const s = subjects.find(x => x.key === skey);
+            let total = 0;
+            s.components.forEach(c => {
+                const v = parseInt(document.getElementById('cw-' + c.id)?.value || 0);
+                total += v;
+            });
+            const badge = document.getElementById('wtb-' + skey);
+            if (badge) { badge.textContent = `${total}/100 ${total === 100 ? '✓' : '⚠ must = 100'}`; badge.className = `wt-sum-badge ${total === 100 ? 'wt-ok' : 'wt-bad'}`; }
+        }
+
+        function liveCompName(skey, cid, val) {
+            // just UI update, actual save on save button
+        }
+
+        function addComp(skey, name, type) {
+            const s = subjects.find(x => x.key === skey);
+            s.components.push({ id: uid(), name, type, weight: 0, items: type === 'multi' ? [{ obt: 0, max: 25 }, { obt: 0, max: 25 }] : [{ obt: 0, max: 100 }] });
+            renderSettings();
+        }
+
+        function deleteComp(skey, cid) {
+            const s = subjects.find(x => x.key === skey);
+            if (s.components.length <= 1) { myAlert('At least 1 component required.'); return; }
+            s.components = s.components.filter(c => c.id !== cid);
+            renderSettings();
+        }
+
+        function addSubItem(skey, cid) {
+            const s = subjects.find(x => x.key === skey);
+            const c = s.components.find(x => x.id === cid);
+            c.items.push({ obt: 0, max: 25 });
+            renderSettings();
+        }
+
+        function delSubItem(skey, cid, idx) {
+            const s = subjects.find(x => x.key === skey);
+            const c = s.components.find(x => x.id === cid);
+            if (c.items.length <= 1) { myAlert('At least 1 item required.'); return; }
+            c.items.splice(idx, 1);
+            renderSettings();
+        }
+
+        function deleteSubject(idx) {
+            const s = subjects[idx];
+            if (!s) return;
+            myConfirm(`Delete "${s.key} — ${s.name}"?\nThis cannot be undone.`, () => {
+                // flush current DOM values into subjects BEFORE splicing
+                // so other subjects don't lose their unsaved input data
+                subjects.forEach((subj) => {
+                    const keyEl = document.getElementById('sk-' + subj.key);
+                    const nameEl = document.getElementById('sf-' + subj.key);
+                    if (keyEl) subj.key = keyEl.value.trim().toUpperCase() || subj.key;
+                    if (nameEl) subj.name = nameEl.value.trim() || subj.name;
+                    subj.components.forEach(c => {
+                        const wtEl = document.getElementById('cw-' + c.id);
+                        const nameEl2 = document.getElementById('cn-' + c.id);
+                        if (wtEl) c.weight = parseInt(wtEl.value) || 0;
+                        if (nameEl2) c.name = nameEl2.value || c.name;
+                        if (c.type === 'single') {
+                            const oEl = document.getElementById('ci0o-' + c.id);
+                            const mEl = document.getElementById('ci0m-' + c.id);
+                            if (oEl && oEl.value !== "") c.items[0].obt = parseFloat(oEl.value);
+                            if (mEl && mEl.value !== "") c.items[0].max = parseFloat(mEl.value);
+                        } else {
+                            c.items.forEach((it, ii) => {
+                                const oEl = document.getElementById(`cio-${c.id}-${ii}`);
+                                const mEl = document.getElementById(`cim-${c.id}-${ii}`);
+                                if (oEl && oEl.value !== "") it.obt = parseFloat(oEl.value);
+                                if (mEl && mEl.value !== "") it.max = parseFloat(mEl.value);
+                            });
+                        }
+                    });
+                });
+                // now splice by index
+                subjects.splice(idx, 1);
+                renderSettings();
+                updateNavCgpa();
+            });
+        }
+
+        // ─── SAVE ───
+        function saveSettings() {
+            let ok = true;
+            const newSubjects = [];
+
+            for (const s of subjects) {
+                const newKey = (document.getElementById('sk-' + s.key)?.value || s.key).trim().toUpperCase();
+                const newName = (document.getElementById('sf-' + s.key)?.value || s.name).trim();
+                let totalWt = 0;
+                const newComps = [];
+                for (const c of s.components) {
+                    const wt = parseInt(document.getElementById('cw-' + c.id)?.value || 0);
+                    const name = document.getElementById('cn-' + c.id)?.value || c.name;
+                    totalWt += wt;
+                    let items = [];
+                    if (c.type === 'single') {
+                        const obt = parseFloat(document.getElementById('ci0o-' + c.id)?.value || 0);
+                        const max = parseFloat(document.getElementById('ci0m-' + c.id)?.value || 100);
+                        items = [{ obt, max }];
+                    } else {
+                        c.items.forEach((_, ii) => {
+                            const obt = parseFloat(document.getElementById(`cio-${c.id}-${ii}`)?.value || 0);
+                            const max = parseFloat(document.getElementById(`cim-${c.id}-${ii}`)?.value || 25);
+                            items.push({ obt, max });
+                        });
+                    }
+                    newComps.push({ ...c, name, weight: wt, items });
+                }
+                if (totalWt !== 100) { myAlert(`"${newKey}": Component weightages must total 100% (currently ${totalWt}%)`); ok = false; break; }
+                newSubjects.push({ ...s, key: newKey, name: newName, components: newComps });
+            }
+            if (!ok) return;
+            subjects = newSubjects;
+            updateNavCgpa();
+            renderSettings();
+            const btn = document.querySelector('.save-btn');
+            btn.textContent = '✅  Saved!'; btn.style.background = 'var(--green)'; btn.style.color = '#000';
+            setTimeout(() => { btn.textContent = '💾  Save All Marks'; btn.style.background = ''; btn.style.color = ''; }, 2200);
+        }
+
+        // ─── ADD SUBJECT MODAL ───
+        let newIconSel = '📚', newColorSel = '#7c6fff';
+
+        function openAddSubject() {
+            newIconSel = '📚'; newColorSel = '#7c6fff';
+            document.getElementById('newKey').value = '';
+            document.getElementById('newFull').value = '';
+            // icon grid
+            document.getElementById('iconGrid').innerHTML = PALETTE_ICONS.map(ic => `<div class="icon-opt${ic === newIconSel ? ' sel' : ''}" onclick="selIcon(this,'${ic}')">${ic}</div>`).join('');
+            // color grid
+            document.getElementById('colorGrid').innerHTML = PALETTE_COLORS.map(cl => `<div class="color-opt${cl === newColorSel ? ' sel' : ''}" style="background:${cl}" onclick="selColor(this,'${cl}')"></div>`).join('');
+            document.getElementById('addSubjModal').classList.add('open');
+        }
+        function closeAddSubject() { document.getElementById('addSubjModal').classList.remove('open'); }
+        function selIcon(el, ic) { document.querySelectorAll('.icon-opt').forEach(e => e.classList.remove('sel')); el.classList.add('sel'); newIconSel = ic; }
+        function selColor(el, cl) { document.querySelectorAll('.color-opt').forEach(e => e.classList.remove('sel')); el.classList.add('sel'); newColorSel = cl; }
+        function confirmAddSubject() {
+            const key = document.getElementById('newKey').value.trim().toUpperCase();
+            const full = document.getElementById('newFull').value.trim();
+            if (!key) { myAlert('Short name is required.'); return; }
+            if (subjects.find(s => s.key === key)) { myAlert(`Subject "${key}" already exists.`); return; }
+            subjects.push(defSubject(key, full || key, newIconSel, newColorSel));
+            closeAddSubject();
+            renderSettings();
+            updateNavCgpa();
+        }
+        document.getElementById('addSubjModal').addEventListener('click', e => { if (e.target === document.getElementById('addSubjModal')) closeAddSubject(); });
+        document.getElementById('detailModal').addEventListener('click', e => { if (e.target === document.getElementById('detailModal')) closeDetail(); });
+
+        // ─── ANIM ───
+        function animBars() {
+            setTimeout(() => {
+                document.querySelectorAll('.cm-fill').forEach(el => {
+                    const w = el.style.width; el.style.width = '0';
+                    requestAnimationFrame(() => requestAnimationFrame(() => { el.style.width = w; }));
+                });
+            }, 60);
+        }
+
+        // ─── INIT ───
+        renderDash();
+        updateNavCgpa();
+    </script>
+</body>
+
+</html>
